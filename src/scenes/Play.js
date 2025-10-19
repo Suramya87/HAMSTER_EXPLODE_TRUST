@@ -44,13 +44,33 @@ class Play extends Phaser.Scene {
             repeat: 0
         });
 
+        this.TEN_SECONDS = 10001;
+        this.countdownTimer = this.time.addEvent({
+            delay: this.TEN_SECONDS,
+            callback: () => {
+                console.log("Time's up! Both players failed to choose in time.");
+            },
+            callbackScope: this
+        });
+        
+        this.displayTimer = this.add.text(w / 2, h * 0.1, `${this.getTimeInSeconds()}`, {
+            fontSize: '32px',
+            color: '#ffffff'
+        }).setOrigin(0.5);
 
         this.keyShare1 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
         this.keySteal1 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
         this.keyShare2 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.K);
         this.keySteal2 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.L);
         // Add labels to buttons
+
+        //P1 controls
+
         this.add.text(this.share1.x, this.share1.y, 'Share', {
+            fontSize: '16px',
+            color: '#ffffff'
+        }).setOrigin(0.5);
+        this.add.text(this.share1.x, this.share1.y-50, 'A', {
             fontSize: '16px',
             color: '#ffffff'
         }).setOrigin(0.5);
@@ -59,8 +79,19 @@ class Play extends Phaser.Scene {
             fontSize: '16px',
             color: '#ffffff'
         }).setOrigin(0.5);
+        this.add.text(this.steal1.x, this.steal1.y-50, 'S', {
+            fontSize: '16px',
+            color: '#ffffff'
+        }).setOrigin(0.5);
 
+
+
+        //P2 controls
         this.add.text(this.share2.x, this.share2.y, 'Share', {
+            fontSize: '16px',
+            color: '#ffffff'
+        }).setOrigin(0.5);
+        this.add.text(this.share2.x, this.share2.y-50, 'K', {
             fontSize: '16px',
             color: '#ffffff'
         }).setOrigin(0.5);
@@ -69,10 +100,32 @@ class Play extends Phaser.Scene {
             fontSize: '16px',
             color: '#ffffff'
         }).setOrigin(0.5);
+        this.add.text(this.steal2.x, this.steal2.y-50, 'L', {
+            fontSize: '16px',
+            color: '#ffffff'
+        }).setOrigin(0.5);
 
     }
 
-    update() {
+    update(delta) {
+        if (this.p1Choice && this.p2Choice) {
+            this.countdownTimer.paused = true;
+        }
+
+        if (this.countdownTimer.paused == false) {
+            this.displayTimer.setText(`${this.getTimeInSeconds()}`);    
+        } else {
+            //console.log("Timer is paused.");
+        }
+
+        if (this.countdownTimer.getRemaining() <= 0 && this.countdownTimer.paused === false) {
+            //console.log(this.countdownTimer.getRemaining());
+            console.log("Time's up! Both players failed to choose in time.");
+            this.countdownTimer.paused = true;
+            this.countdownTimer.delay = 100;
+            //this.countdownTimer.time
+        }
+
         if (Phaser.Input.Keyboard.JustDown(this.keyShare1) && !this.p1Choice) {//would def be better to use listners preformance wise but it's just a color swap so...
             this.share1.fillColor = 0x008000;
             this.p1Choice = "share";
@@ -200,8 +253,13 @@ movePrizeTo(player) {
     });
 }
 
+    getTimeInSeconds(){
+        return Math.ceil(this.countdownTimer.getRemaining() / 1000);
+    }
+
 
     reset() {
+
         this.share1.fillColor = 0xff2c2c;
         this.steal1.fillColor = 0xff2c2c;
         this.share2.fillColor = 0xff2c2c;
@@ -218,5 +276,16 @@ movePrizeTo(player) {
             this.prize.setScale(1);
             this.prize.setPosition(this.cameras.main.width / 2, this.cameras.main.height / 2);
         }
+
+        console.log(this.TEN_SECONDS);
+        this.countdownTimer.reset({
+            delay: this.TEN_SECONDS,
+            callback: () => {
+                console.log("Time's up! Both players failed to choose in time.");
+            },
+            callbackScope: this,
+        });
+
+        console.log(this.countdownTimer.delay);
     }
 }
