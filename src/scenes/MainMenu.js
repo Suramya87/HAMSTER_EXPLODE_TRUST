@@ -19,11 +19,7 @@ class MainMenu extends Phaser.Scene {
             this.scene.start('playScene');
         });
 
-        keyShare1 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A)
-        keySteal1 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S)
-        keyShare2 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.K)
-        keySteal2 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.L)
-        keyEnter = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
+
     }
 
     update() {

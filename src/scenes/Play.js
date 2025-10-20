@@ -7,11 +7,11 @@ class Play extends Phaser.Scene {
         this.load.image('idleItem', 'assets/hammy.png');      // base object texture
         this.load.image('movingItem', 'assets/ham.png');      // moving/animated version
         this.load.spritesheet('Blast', 'assets/Fire_Blast.png', {
-        frameWidth: 400,
-        frameHeight: 400
-});
+            frameWidth: 400,
+            frameHeight: 400
+        });
 
-        
+
     }
 
     create() {
@@ -31,14 +31,14 @@ class Play extends Phaser.Scene {
             .setOrigin(0.5)
             .setDepth(10);
 
-        this.p1Choice = null;  
+        this.p1Choice = null;
         this.p2Choice = null;
         this.reseting = false;
         this.anims.create({
             key: 'Boom',
-            frames: this.anims.generateFrameNumbers('Blast', { 
-                start: 7, 
-                end: 9 
+            frames: this.anims.generateFrameNumbers('Blast', {
+                start: 7,
+                end: 9
             }),
             frameRate: 15,
             repeat: 0
@@ -52,7 +52,7 @@ class Play extends Phaser.Scene {
             },
             callbackScope: this
         });
-        
+
         this.displayTimer = this.add.text(w / 2, h * 0.1, `${this.getTimeInSeconds()}`, {
             fontSize: '32px',
             color: '#ffffff'
@@ -70,7 +70,7 @@ class Play extends Phaser.Scene {
             fontSize: '16px',
             color: '#ffffff'
         }).setOrigin(0.5);
-        this.add.text(this.share1.x, this.share1.y-50, 'A', {
+        this.add.text(this.share1.x, this.share1.y - 50, 'A', {
             fontSize: '16px',
             color: '#ffffff'
         }).setOrigin(0.5);
@@ -79,7 +79,7 @@ class Play extends Phaser.Scene {
             fontSize: '16px',
             color: '#ffffff'
         }).setOrigin(0.5);
-        this.add.text(this.steal1.x, this.steal1.y-50, 'S', {
+        this.add.text(this.steal1.x, this.steal1.y - 50, 'S', {
             fontSize: '16px',
             color: '#ffffff'
         }).setOrigin(0.5);
@@ -91,7 +91,7 @@ class Play extends Phaser.Scene {
             fontSize: '16px',
             color: '#ffffff'
         }).setOrigin(0.5);
-        this.add.text(this.share2.x, this.share2.y-50, 'K', {
+        this.add.text(this.share2.x, this.share2.y - 50, 'K', {
             fontSize: '16px',
             color: '#ffffff'
         }).setOrigin(0.5);
@@ -100,7 +100,7 @@ class Play extends Phaser.Scene {
             fontSize: '16px',
             color: '#ffffff'
         }).setOrigin(0.5);
-        this.add.text(this.steal2.x, this.steal2.y-50, 'L', {
+        this.add.text(this.steal2.x, this.steal2.y - 50, 'L', {
             fontSize: '16px',
             color: '#ffffff'
         }).setOrigin(0.5);
@@ -113,7 +113,7 @@ class Play extends Phaser.Scene {
         }
 
         if (this.countdownTimer.paused == false) {
-            this.displayTimer.setText(`${this.getTimeInSeconds()}`);    
+            this.displayTimer.setText(`${this.getTimeInSeconds()}`);
         } else {
             //console.log("Timer is paused.");
         }
@@ -123,6 +123,8 @@ class Play extends Phaser.Scene {
             console.log("Time's up! Both players failed to choose in time.");
             this.countdownTimer.paused = true;
             this.countdownTimer.delay = 100;
+            endCondition = "timer"
+            this.scene.start("endScene");
             //this.countdownTimer.time
         }
 
@@ -163,7 +165,7 @@ class Play extends Phaser.Scene {
         if (this.p1Choice === "share" && this.p2Choice === "share") {
             console.log("Both shared. Play blast animation, then prize drops in.");
 
-            this.prize.setAlpha(0); 
+            this.prize.setAlpha(0);
 
             const explosion = this.add.sprite(this.cameras.main.width / 2, this.cameras.main.height / 2, 'Blast')
                 .setScale(1)
@@ -212,6 +214,8 @@ class Play extends Phaser.Scene {
                 duration: 500,
                 onComplete: () => {
                     this.prize.destroy();
+                    endCondition = "greed";
+                    this.scene.start('endScene');
                 }
             });
         }
@@ -223,37 +227,37 @@ class Play extends Phaser.Scene {
         });
     }
 
-movePrizeTo(player) {
-    const targetY = this.cameras.main.height * 0.75;
-    const targetX = (player === "p1") ? this.share1.x : this.share2.x;
+    movePrizeTo(player) {
+        const targetY = this.cameras.main.height * 0.75;
+        const targetX = (player === "p1") ? this.share1.x : this.share2.x;
 
-    if (player === "p1") {
-        this.prize.flipY = true;
+        if (player === "p1") {
+            this.prize.flipY = true;
+        }
+
+        this.prize.setTexture('movingItem');
+
+        const originalRotation = 0;
+        const angle = Phaser.Math.Angle.Between(this.prize.x, this.prize.y, targetX, targetY);
+        this.prize.setRotation(angle);
+        this.prize.setScale(0.5);
+
+        this.tweens.add({
+            targets: this.prize,
+            x: targetX,
+            y: targetY,
+            duration: 500,
+            ease: "Power5",
+            scale: 0.2,
+            onComplete: () => {
+                this.prize.flipY = false;
+                this.prize.setTexture('staticItem');
+
+            }
+        });
     }
 
-    this.prize.setTexture('movingItem');
-
-    const originalRotation = 0; 
-    const angle = Phaser.Math.Angle.Between(this.prize.x, this.prize.y, targetX, targetY);
-    this.prize.setRotation(angle);
-    this.prize.setScale(0.5);
-
-    this.tweens.add({
-        targets: this.prize,
-        x: targetX,
-        y: targetY,
-        duration: 500,
-        ease: "Power5",
-        scale: 0.2,
-        onComplete: () => {
-            this.prize.flipY = false;
-            this.prize.setTexture('staticItem');
-
-        }
-    });
-}
-
-    getTimeInSeconds(){
+    getTimeInSeconds() {
         return Math.ceil(this.countdownTimer.getRemaining() / 1000);
     }
 
