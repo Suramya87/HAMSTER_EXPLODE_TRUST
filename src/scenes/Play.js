@@ -13,6 +13,7 @@ class Play extends Phaser.Scene {
         this.load.audio('ding', 'assets/Point.mp3');
         this.load.audio('hamsterboom', 'assets/hamsterboom.mp3');
         this.load.audio('explosion', 'assets/BOOM.mp3');
+        this.load.audio('song', 'assets/song.mp3'); // background music
     }
 
     create() {
@@ -32,6 +33,7 @@ class Play extends Phaser.Scene {
         this.p1Choice = null;
         this.p2Choice = null;
         this.reseting = false;
+        this.timerWasPaused = false;
 
         this.anims.create({
             key: 'Boom',
@@ -52,6 +54,9 @@ class Play extends Phaser.Scene {
             color: '#ffffff'
         }).setOrigin(0.5);
 
+        this.music = this.sound.add('song', { loop: true, volume: 0.5 });
+        this.music.play();
+
         this.keyShare1 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
         this.keySteal1 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
         this.keyShare2 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.K);
@@ -68,6 +73,15 @@ class Play extends Phaser.Scene {
     }
 
     update(delta) {
+        // sync music with timer state
+        if (this.countdownTimer.paused && !this.timerWasPaused) {
+            if (this.music.isPlaying) this.music.stop();
+            this.timerWasPaused = true;
+        } else if (!this.countdownTimer.paused && this.timerWasPaused) {
+            if (!this.music.isPlaying) this.music.play({ loop: true });
+            this.timerWasPaused = false;
+        }
+
         if (this.p1Choice && this.p2Choice) {
             this.countdownTimer.paused = true;
         }
@@ -124,7 +138,6 @@ class Play extends Phaser.Scene {
 
             if (this.anims.exists('Boom')) explosion.play('Boom');
 
-            // Explosion sound now plays immediately when PNG appears
             this.sound.play('explosion');
 
             explosion.on('animationcomplete', () => {
