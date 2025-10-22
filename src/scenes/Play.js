@@ -11,6 +11,8 @@ class Play extends Phaser.Scene {
             frameHeight: 400
         });
         this.load.audio('ding', 'assets/Point.mp3');
+        this.load.audio('hamsterboom', 'assets/hamsterboom.mp3');
+        this.load.audio('explosion', 'assets/BOOM.mp3');
     }
 
     create() {
@@ -25,9 +27,7 @@ class Play extends Phaser.Scene {
         this.share2 = this.add.rectangle(w * 0.75, h * 0.75, 50, 50, 0xff2c2c);
         this.steal2 = this.add.rectangle((w * 0.75) + 75, h * 0.75, 50, 50, 0xff2c2c);
 
-        this.prize = this.add.sprite(w / 2, h / 2, 'idleItem')
-            .setOrigin(0.5)
-            .setDepth(10);
+        this.prize = this.add.sprite(w / 2, h / 2, 'idleItem').setOrigin(0.5).setDepth(10);
 
         this.p1Choice = null;
         this.p2Choice = null;
@@ -35,10 +35,7 @@ class Play extends Phaser.Scene {
 
         this.anims.create({
             key: 'Boom',
-            frames: this.anims.generateFrameNumbers('Blast', {
-                start: 7,
-                end: 9
-            }),
+            frames: this.anims.generateFrameNumbers('Blast', { start: 7, end: 9 }),
             frameRate: 15,
             repeat: 0
         });
@@ -46,9 +43,7 @@ class Play extends Phaser.Scene {
         this.TEN_SECONDS = 10001;
         this.countdownTimer = this.time.addEvent({
             delay: this.TEN_SECONDS,
-            callback: () => {
-                console.log("Time's up! Both players failed to choose in time.");
-            },
+            callback: () => { console.log("Time's up! Both players failed to choose in time."); },
             callbackScope: this
         });
 
@@ -82,7 +77,6 @@ class Play extends Phaser.Scene {
         }
 
         if (this.countdownTimer.getRemaining() <= 0 && this.countdownTimer.paused === false) {
-            console.log("Time's up! Both players failed to choose in time.");
             this.countdownTimer.paused = true;
             this.countdownTimer.delay = 100;
             endCondition = "timer";
@@ -109,64 +103,58 @@ class Play extends Phaser.Scene {
 
         if (this.p1Choice && this.p2Choice && !this.reseting) {
             this.reseting = true;
-
+            this.sound.play('hamsterboom');
             this.time.addEvent({
                 delay: 1000,
-                callback: () => {
-                    this.evaluateChoices();
-                },
+                callback: () => { this.evaluateChoices(); },
                 callbackScope: this
             });
         }
     }
 
     evaluateChoices() {
-        console.log(`P1: ${this.p1Choice}, P2: ${this.p2Choice}`);
-
         if (this.p1Choice === "share" && this.p2Choice === "share") {
-            console.log("Both shared. Play blast animation, then prize drops in.");
-
             this.prize.setAlpha(0);
 
-            const explosion = this.add.sprite(this.cameras.main.width / 2, this.cameras.main.height / 2, 'Blast')
-                .setScale(1)
-                .setDepth(20);
+            const explosion = this.add.sprite(
+                this.cameras.main.width / 2,
+                this.cameras.main.height / 2,
+                'Blast'
+            ).setScale(1).setDepth(20);
 
-            explosion.play('Boom');
+            if (this.anims.exists('Boom')) explosion.play('Boom');
+
+            // Explosion sound now plays immediately when PNG appears
+            this.sound.play('explosion');
 
             explosion.on('animationcomplete', () => {
                 explosion.destroy();
 
-                this.time.delayedCall(500, () => {
-                    this.prize.setTexture('movingItem');
-                    this.sound.play('ding');
-                    this.prize.setPosition(this.cameras.main.width / 2, -100);
-                    this.prize.setAlpha(1);
-                    this.prize.setScale(0.3);
-                    this.prize.setRotation(Phaser.Math.DegToRad(180));
+                this.prize.setTexture('movingItem');
+                this.sound.play('ding');
+                this.prize.setPosition(this.cameras.main.width / 2, -100);
+                this.prize.setAlpha(1);
+                this.prize.setScale(0.3);
+                this.prize.setRotation(Phaser.Math.DegToRad(180));
 
-                    this.tweens.add({
-                        targets: this.prize,
-                        y: this.cameras.main.height / 2,
-                        scale: 1,
-                        rotation: 0,
-                        ease: 'Bounce',
-                        duration: 800,
-                        onComplete: () => {
-                            this.prize.setTexture('idleItem');
-                        }
-                    });
+                this.tweens.add({
+                    targets: this.prize,
+                    y: this.cameras.main.height / 2,
+                    scale: 1,
+                    rotation: 0,
+                    ease: 'Bounce',
+                    duration: 800,
+                    onComplete: () => {
+                        this.prize.setTexture('idleItem');
+                    }
                 });
             });
 
         } else if (this.p1Choice === "steal" && this.p2Choice === "share") {
-            console.log("Player 1 stole and wins the object!");
             this.movePrizeTo("p1");
         } else if (this.p1Choice === "share" && this.p2Choice === "steal") {
-            console.log("Player 2 stole and wins the object!");
             this.movePrizeTo("p2");
         } else if (this.p1Choice === "steal" && this.p2Choice === "steal") {
-            console.log("Both stole. Game over.");
             this.tweens.add({
                 targets: this.prize,
                 alpha: 0,
@@ -190,14 +178,11 @@ class Play extends Phaser.Scene {
         const targetY = this.cameras.main.height * 0.75;
         const targetX = (player === "p1") ? this.share1.x : this.share2.x;
 
-        if (player === "p1") {
-            this.prize.flipY = true;
-        }
+        if (player === "p1") this.prize.flipY = true;
 
         this.prize.setTexture('movingItem');
         this.sound.play('ding');
 
-        const originalRotation = 0;
         const angle = Phaser.Math.Angle.Between(this.prize.x, this.prize.y, targetX, targetY);
         this.prize.setRotation(angle);
         this.prize.setScale(0.5);
@@ -240,9 +225,7 @@ class Play extends Phaser.Scene {
 
         this.countdownTimer.reset({
             delay: this.TEN_SECONDS,
-            callback: () => {
-                console.log("Time's up! Both players failed to choose in time.");
-            },
+            callback: () => { console.log("Time's up! Both players failed to choose in time."); },
             callbackScope: this,
         });
     }
