@@ -13,7 +13,7 @@ class Play extends Phaser.Scene {
         this.load.audio('ding', 'assets/Point.mp3');
         this.load.audio('hamsterboom', 'assets/hamsterboom.mp3');
         this.load.audio('explosion', 'assets/BOOM.mp3');
-        this.load.audio('song', 'assets/song.mp3'); // background music
+        this.load.audio('song', 'assets/Song.mp3'); // background music
     }
 
     create() {
