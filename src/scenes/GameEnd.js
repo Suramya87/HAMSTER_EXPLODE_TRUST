@@ -91,7 +91,13 @@ class GameEnd extends Phaser.Scene {
 
             // After fadeDuration, show a recap of both players' totals
             setTimeout(() => {
-                const recapText = `Final Scores:\nP1: ${this.registry.get('p1Steals')} hamsters\nP2: ${this.registry.get('p2Steals')} hamsters`;
+                let noOfP1Hamsters = this.registry.get('p1Steals');
+                let noOfP2Hamsters = this.registry.get('p2Steals');
+
+                if (noOfP1Hamsters === undefined) noOfP1Hamsters = 0;
+                if (noOfP2Hamsters === undefined) noOfP2Hamsters = 0;
+                
+                const recapText = `Final Scores:\nP1: ${noOfP1Hamsters} hamsters\nP2: ${noOfP2Hamsters} hamsters`;
                 this.sceneText.setText(recapText);
                 this.phaseText();
             }, this.fadeDuration * 2);

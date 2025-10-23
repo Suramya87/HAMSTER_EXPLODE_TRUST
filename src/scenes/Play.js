@@ -10,23 +10,29 @@ class Play extends Phaser.Scene {
             frameWidth: 400,
             frameHeight: 400
         });
+        this.load.image('checkmark', 'assets/checkmark.png');
         this.load.audio('ding', 'assets/Point.mp3');
         this.load.audio('hamsterboom', 'assets/hamsterboom.mp3');
         this.load.audio('explosion', 'assets/BOOM.mp3');
         this.load.audio('song', 'assets/song1.mp3');
+        this.load.audio('dramaboom', 'assets/dramatic_boom.mp3');
     }
 
     create() {
         const w = this.cameras.main.width;
         const h = this.cameras.main.height;
 
+        this.RED = 0xff2c2c;
+        this.GREEN = 0x008000;
+        this.PANNEL = 0x808080;
+
         // panels and buttons
-        this.panel1 = this.add.rectangle((w / 4) - 40, h * 0.75, 155, 75, 0x808080);
-        this.panel2 = this.add.rectangle((w * 0.75) + 40, h * 0.75, 155, 75, 0x808080);
-        this.share1 = this.add.rectangle((w / 4) - 75, h * 0.75, 50, 50, 0xff2c2c);
-        this.steal1 = this.add.rectangle(w / 4, h * 0.75, 50, 50, 0xff2c2c);
-        this.share2 = this.add.rectangle(w * 0.75, h * 0.75, 50, 50, 0xff2c2c);
-        this.steal2 = this.add.rectangle((w * 0.75) + 75, h * 0.75, 50, 50, 0xff2c2c);
+        this.panel1 = this.add.rectangle((w / 4) - 40, h * 0.75, 155, 75, this.PANNEL);
+        this.panel2 = this.add.rectangle((w * 0.75) + 40, h * 0.75, 155, 75, this.PANNEL);
+        this.share1 = this.add.rectangle((w / 4) - 75, h * 0.75, 50, 50, this.RED);
+        this.steal1 = this.add.rectangle(w / 4, h * 0.75, 50, 50, this.RED);
+        this.share2 = this.add.rectangle(w * 0.75, h * 0.75, 50, 50, this.RED);
+        this.steal2 = this.add.rectangle((w * 0.75) + 75, h * 0.75, 50, 50, this.RED);
 
         this.keyShare1 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
         this.keySteal1 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
@@ -43,7 +49,14 @@ class Play extends Phaser.Scene {
         this.add.text(this.steal2.x, this.steal2.y, 'Steal', { fontSize: '16px', color: '#ffffff' }).setOrigin(0.5);
         this.add.text(this.steal2.x, this.steal2.y - 50, 'L', { fontSize: '16px', color: '#ffffff' }).setOrigin(0.5);
 
-        // handss
+        //player checkmarks
+        this.p1Checkmark = this.add.image(this.panel1.x, this.panel1.y+70, 'checkmark').setOrigin(0.5).setScale(2.5).setVisible(false);
+        this.p2Checkmark = this.add.image(this.panel2.x, this.panel2.y+70, 'checkmark').setOrigin(0.5).setScale(2.5).setVisible(false);
+
+        this.choicesMadeSound = this.sound.add('dramaboom');
+        this.choicesMadeSound.volume = 1.25;
+
+        // hands
         this.p1Choice = null;
         this.p2Choice = null;
         this.reseting = false;
@@ -57,7 +70,7 @@ class Play extends Phaser.Scene {
             repeat: 0
         });
 
-        //more numbersa
+        //more numbers
         this.hamsterPool = Phaser.Math.Between(5, 25); // total hamsters available
         this.p1Steals = 0;
         this.p2Steals = 0;
@@ -98,6 +111,13 @@ class Play extends Phaser.Scene {
             this.timerWasPaused = false;
         }
 
+        if (this.p1Choice) {
+            this.p1Checkmark.setVisible(true);
+        }
+        if (this.p2Choice) {
+            this.p2Checkmark.setVisible(true);
+        }
+
         if (this.p1Choice && this.p2Choice) {
             this.countdownTimer.paused = true;
         }
@@ -113,28 +133,28 @@ class Play extends Phaser.Scene {
         }
 
         if (Phaser.Input.Keyboard.JustDown(this.keyShare1) && !this.p1Choice) {
-            this.share1.fillColor = 0x008000;
+            //this.share1.fillColor = 0x008000;
             this.p1Choice = "share";
         }
         if (Phaser.Input.Keyboard.JustDown(this.keySteal1) && !this.p1Choice) {
-            this.steal1.fillColor = 0x008000;
+            //this.steal1.fillColor = 0x008000;
             this.p1Choice = "steal";
         }
         if (Phaser.Input.Keyboard.JustDown(this.keyShare2) && !this.p2Choice) {
-            this.share2.fillColor = 0x008000;
+            //this.share2.fillColor = 0x008000;
             this.p2Choice = "share";
         }
         if (Phaser.Input.Keyboard.JustDown(this.keySteal2) && !this.p2Choice) {
-            this.steal2.fillColor = 0x008000;
+            //this.steal2.fillColor = 0x008000;
             this.p2Choice = "steal";
         }
 
         if (this.p1Choice && this.p2Choice && !this.reseting) {
             this.reseting = true;
-            this.sound.play('hamsterboom');
+            this.choicesMadeSound.play();
             this.time.addEvent({
-                delay: 1000,
-                callback: () => { this.evaluateChoices(); },
+                delay: 2500,
+                callback: () => { this.revealChoices(); },
                 callbackScope: this
             });
         }
@@ -150,11 +170,35 @@ class Play extends Phaser.Scene {
 
         for (let i = 0; i < numHamsters; i++) {
             const x = spacing * (i + 1) + Phaser.Math.Between(-20, 20);
-            const ham = this.add.sprite(x, y, 'idleItem').setOrigin(0.5).setDepth(10).setScale(1);
+            const ham = this.add.sprite(x, y-50, 'idleItem').setOrigin(0.5).setDepth(10).setScale(1);
             this.hamsters.push(ham);
         }
 
         this.currentHamsterCount = numHamsters;
+    }
+
+    revealChoices() {
+        // reveal choices visually
+        this.choicesMadeSound.stop();
+        if (this.p1Choice === "share") {
+            this.share1.fillColor = this.GREEN;
+        } else if (this.p1Choice === "steal") {
+            this.steal1.fillColor = this.GREEN;
+        }
+
+        if (this.p2Choice === "share") {
+            this.share2.fillColor = this.GREEN;
+        } else if (this.p2Choice === "steal") {
+            this.steal2.fillColor = this.GREEN;
+        }
+
+        this.sound.play('hamsterboom');
+            this.time.addEvent({
+                delay: 1250,
+                callback: () => { this.evaluateChoices(); },
+                callbackScope: this
+            });
+
     }
 
     evaluateChoices() {
@@ -272,10 +316,13 @@ class Play extends Phaser.Scene {
     }
 
     reset() {
-        this.share1.fillColor = 0xff2c2c;
-        this.steal1.fillColor = 0xff2c2c;
-        this.share2.fillColor = 0xff2c2c;
-        this.steal2.fillColor = 0xff2c2c;
+        this.share1.fillColor = this.RED;
+        this.steal1.fillColor = this.RED;
+        this.share2.fillColor = this.RED;
+        this.steal2.fillColor = this.RED;
+
+        this.p1Checkmark.setVisible(false);
+        this.p2Checkmark.setVisible(false);
 
         this.p1Choice = null;
         this.p2Choice = null;
