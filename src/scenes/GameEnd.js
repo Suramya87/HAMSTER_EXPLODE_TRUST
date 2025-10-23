@@ -11,25 +11,25 @@ class GameEnd extends Phaser.Scene {
             fontSize: '16px',
             color: '#ffffff'
         }).setOrigin(0.5).setAlpha(0);
-        if (endCondition == "greed") {
+
+        if (endCondition === "greed") {
             this.greedEnding();
+        } 
+        else if (endCondition === "timer") {
+            this.sceneText.setText("Time's up!").setAlpha(1);
+            endCondition = "";
         }
-        else if (endCondition = "timer") {
-            this.sceneText.setText("Time\'s up!").setAlpha(1);
-            endCondition = ""
-        }
+        else if (endCondition === "outofhamsters") {
+            this.hamsterPoolEnding();
+        } 
         else {
             this.add.text(w / 2, h / 3, 'Hullo?', {
                 fontSize: '16px',
                 color: '#ffffff'
             }).setOrigin(0.5);
-
         }
-
-
-
-
     }
+
 
     update() {
 
@@ -70,4 +70,50 @@ class GameEnd extends Phaser.Scene {
         endCondition = ""
         //Cue world exploding
     }
+
+        hamsterPoolEnding() {
+            const w = this.cameras.main.width;
+            const h = this.cameras.main.height;
+            this.fadeDuration = 2000;
+
+            let winnerMessage = "";
+            if (this.registry.get('p1Steals') > this.registry.get('p2Steals')) {
+                winnerMessage = "Player 1 Wins!";
+            } else if (this.registry.get('p2Steals') > this.registry.get('p1Steals')) {
+                winnerMessage = "Player 2 Wins!";
+            } else {
+                winnerMessage = "It's a Tie!";
+            }
+
+            // Show winner first
+            this.sceneText.setText(winnerMessage);
+            this.phaseText();
+
+            // After fadeDuration, show a recap of both players' totals
+            setTimeout(() => {
+                const recapText = `Final Scores:\nP1: ${this.registry.get('p1Steals')} hamsters\nP2: ${this.registry.get('p2Steals')} hamsters`;
+                this.sceneText.setText(recapText);
+                this.phaseText();
+            }, this.fadeDuration * 2);
+            
+
+            setTimeout(() => {
+                this.sceneText.setText("All the hamsters are gone...");
+                this.phaseText();
+            }, this.fadeDuration * 4);
+
+            setTimeout(() => {
+                this.sceneText.setText("The world mourns their loss...");
+                this.phaseText();
+            }, this.fadeDuration * 8);
+
+            setTimeout(() => {
+                this.sceneText.setText("Will anyone remember them?");
+                this.phaseText();
+            }, this.fadeDuration * 10);
+
+            endCondition = "";
+        }
+
+
 }
